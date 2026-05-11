@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Expert Skill — 项目汇报</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0a14;
+    --surface: #13132b;
+    --card: rgba(255,255,255,0.03);
+    --text: #e8e8f0;
+    --text2: #8b8baa;
+    --accent: #6c5ce7;
+    --accent2: #0ea5e9;
+    --accent3: #a78bfa;
+    --accent4: #f59e0b;
+    --accent5: #10b981;
+    --border: rgba(255,255,255,0.06);
+    --glow: 0 0 40px rgba(108,92,231,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; overflow-x: hidden; }
+  body {
+    font-family: 'Inter', 'Noto Sans SC', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ===== Canvas Background ===== */
+  #bgCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ===== Sections ===== */
+  .panel {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    padding: 80px 40px;
+    overflow: hidden;
+  }
+  .panel-inner {
+    max-width: 1100px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== Hero Panel ===== */
+  .hero-panel {
+    flex-direction: column;
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(108,92,231,0.15) 0%, transparent 70%);
+  }
+  .hero-badge {
+    display: inline-block;
+    padding: 8px 24px;
+    border: 1px solid rgba(108,92,231,0.4);
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    color: var(--accent3);
+    backdrop-filter: blur(10px);
+    background: rgba(108,92,231,0.1);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.1s forwards;
+  }
+  .hero-title {
+    font-size: 72px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    line-height: 1.1;
+    margin: 20px 0;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.3s forwards;
+  }
+  .hero-title .grad {
+    background: linear-gradient(135deg, #a78bfa 0%, #6c5ce7 30%, #0ea5e9 70%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 20px;
+    color: var(--text2);
+    max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.5s forwards;
+  }
+  .hero-meta-row {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.7s forwards;
+  }
+  .hero-meta-item {
+    text-align: center;
+  }
+  .hero-meta-item .val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent3);
+  }
+  .hero-meta-item .lbl {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    animation: fadeUp 0.8s 1s forwards, bounce 2s 1.2s infinite;
+  }
+  .scroll-hint .mouse {
+    width: 26px; height: 42px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 14px;
+    position: relative;
+    margin: 0 auto 8px;
+  }
+  .scroll-hint .mouse::after {
+    content: '';
+    width: 4px; height: 10px;
+    background: var(--accent3);
+    border-radius: 2px;
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    animation: scrollWheel 1.5s infinite;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(10px); }
+  }
+  @keyframes scrollWheel {
+    0% { opacity: 1; top: 8px; }
+    100% { opacity: 0; top: 22px; }
+  }
+
+  /* ===== Section Title ===== */
+  .sec-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .sec-title {
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .sec-title .hl { color: var(--accent3); }
+  .sec-desc {
+    font-size: 16px;
+    color: var(--text2);
+    max-width: 650px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  /* ===== Stats Row ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 48px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-card:hover { transform: translateY(-4px); border-color: rgba(108,92,231,0.3); box-shadow: var(--glow); }
+  .stat-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .stat-num {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--accent3), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-lbl {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  /* ===== Grid Layouts ===== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.4s;
+    position: relative;
+  }
+  .info-card:hover {
+    border-color: rgba(108,92,231,0.3);
+    box-shadow: var(--glow);
+    transform: translateY(-3px);
+  }
+  .info-card .card-icon { font-size: 32px; margin-bottom: 14px; }
+  .info-card h4 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .info-card p { font-size: 13px; color: var(--text2); line-height: 1.7; }
+
+  /* ===== Diff Table ===== */
+  .diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: var(--card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .diff-table thead th {
+    text-align: left;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.03);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+  }
+  .diff-table tbody td {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .diff-table tbody td:first-child { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .diff-table .col-ours { color: var(--accent3); font-weight: 600 !important; }
+
+  /* ===== Pipeline ===== */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 40px 0;
+    flex-wrap: wrap;
+  }
+  .pipe-node {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 20px;
+    text-align: center;
+    min-width: 150px;
+    transition: all 0.4s;
+    position: relative;
+  }
+  .pipe-node:hover {
+    border-color: rgba(108,92,231,0.4);
+    box-shadow: var(--glow);
+    transform: translateY(-4px);
+  }
+  .pipe-num {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .pipe-node h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .pipe-node .det { font-size: 11px; color: var(--text2); line-height: 1.5; }
+  .pipe-connector {
+    font-size: 20px;
+    color: rgba(108,92,231,0.4);
+    margin: 0 4px;
+  }
+
+  /* ===== Code Block ===== */
+  .code-block {
+    background: #0d0d1f;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 2.1;
+    overflow-x: auto;
+    color: #c9d1d9;
+  }
+  .code-block .dir { color: #7dd3fc; }
+  .code-block .file { color: #c4b5fd; }
+  .code-block .comment { color: #6b7280; }
+
+  /* ===== Architecture Layers ===== */
+  .arch-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .arch-row-lbl {
+    width: 70px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text2);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .arch-boxes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .arch-chip {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  .arch-chip:hover { transform: translateY(-2px); }
+  .arch-chip.c1 { background: rgba(108,92,231,0.15); color: #a78bfa; border: 1px solid rgba(108,92,231,0.3); }
+  .arch-chip.c2 { background: rgba(14,165,233,0.12); color: #38bdf8; border: 1px solid rgba(14,165,233,0.25); }
+  .arch-chip.c3 { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  .arch-chip.c4 { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+
+  /* ===== Highlight ===== */
+  .highlight {
+    background: linear-gradient(135deg, rgba(108,92,231,0.08), rgba(14,165,233,0.05));
+    border-left: 3px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 18px 24px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text2);
+    margin-top: 20px;
+  }
+  .highlight strong { color: var(--accent3); }
+
+  /* ===== Progress Bar ===== */
+  #progressBar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    z-index: 100;
+    transition: width 0.15s linear;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* ===== Animations on scroll ===== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1),
+                transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ===== Mind Map ===== */
+  .mindmap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+  }
+  .mm-center {
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    border-radius: 20px;
+    padding: 24px 36px;
+    font-size: 18px;
+    font-weight: 800;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(108,92,231,0.3);
+    transition: transform 0.4s;
+  }
+  .mm-center:hover { transform: scale(1.05); }
+  .mm-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mm-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mm-line {
+    width: 50px; height: 2px;
+    background: linear-gradient(90deg, #7c3aed, rgba(124,58,237,0.1));
+    border-radius: 2px;
+  }
+  .mm-node {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .mm-node.no {
+    border-color: rgba(248,113,113,0.2);
+    background: rgba(248,113,113,0.05);
+    color: #fca5a5;
+  }
+  .mm-line.no {
+    background: linear-gradient(90deg, rgba(248,113,113,0.4), rgba(248,113,113,0.05));
+  }
+
+  /* ===== Timeline for Steps ===== */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 19px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding-left: 12px;
+  }
+  .tl-num {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    flex-shrink: 0;
+    z-index: 1;
+    box-shadow: 0 0 20px rgba(108,92,231,0.3);
+  }
+  .tl-content h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .tl-content p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* ===== Big Number Banner ===== */
+  .num-banner {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 40px 0;
+  }
+  .num-big {
+    text-align: center;
+  }
+  .num-big .big {
+    font-size: 72px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    background: linear-gradient(135deg, #a78bfa 0%, #0ea5e9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .num-big .tag {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 8px;
+  }
+
+  /* ===== Outro Panel ===== */
+  .outro-panel {
+    background: radial-gradient(ellipse at center, rgba(108,92,231,0.12) 0%, transparent 70%);
+    text-align: center;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .hero-title { font-size: 40px; }
+    .sec-title { font-size: 28px; }
+    .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .hero-meta-row { flex-wrap: wrap; gap: 20px; }
+    .pipeline { flex-direction: column; }
+    .pipe-connector { transform: rotate(90deg); }
+    .arch-row { flex-direction: column; align-items: flex-start; }
+    .arch-row-lbl { text-align: left; }
+    .mindmap { flex-direction: column; }
+    .num-banner { gap: 30px; }
+    .num-big .big { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div id="progressBar"></div>
+
+<!-- ===== Panel 1: Hero ===== -->
+<section class="panel hero-panel">
+  <div class="hero-badge reveal">Claude Code Plugin &middot; v1.0.0</div>
+  <h1 class="hero-title reveal reveal-delay-1">Enterprise<br><span class="grad">Expert Skill</span></h1>
+  <p class="hero-sub reveal reveal-delay-2">
+    企业专家知识蒸馏引擎 &mdash; 将领域专家的诊断直觉、设计启发与判断框架凝练为可复用的 LLM Skill
+  </p>
+  <div class="hero-meta-row reveal reveal-delay-3">
+    <div class="hero-meta-item"><div class="val">Python 3.12+</div><div class="lbl">技术栈</div></div>
+    <div class="hero-meta-item"><div class="val">~5,700 行</div><div class="lbl">代码规模</div></div>
+    <div class="hero-meta-item"><div class="val">5 种</div><div class="lbl">专长类型</div></div>
+    <div class="hero-meta-item"><div class="val">11 个</div><div class="lbl">工具模块</div></div>
+  </div>
+  <div class="scroll-hint">
+    <div class="mouse"></div>
+    <div style="font-size: 11px; color: var(--text2);">向下滚动</div>
+  </div>
+</section>
+
+<!-- ===== Panel 2: Problem ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">背景与动机</div>
+    <h2 class="sec-title reveal reveal-delay-1">企业专家的<span class="hl">隐性知识</span>，如何沉淀？</h2>
+    <p class="sec-desc reveal reveal-delay-2">每个团队都有 go-to person——他们拥有大量隐性知识，但人走了知识就消失了。</p>
+    <div class="grid-3">
+      <div class="info-card reveal reveal-delay-1">
+        <div class="card-icon">&#128552;</div>
+        <h4>知识断层危机</h4>
+        <p>资深专家离职后，其诊断直觉、设计启发、判断框架随之流失。新人遇到同类问题只能从零摸索，团队效率断崖式下降。</p>
+      </div>
+      <div class="info-card reveal reveal-delay-2">
+        <div class="card-icon">&#128172;</div>
+        <h4>隐性知识难表达</h4>
+        <p>专家的判断框架往往是"肌肉记忆"——他们知道该查什么，但很少写成文档。传统 Wiki 无法捕捉这种启发式思维。</p>
+      </div>
+      <div class="info-card reveal reveal-delay-3">
+        <div class="card-icon">&#128186;</div>
+        <h4>LLM 时代的新解法</h4>
+        <p>大语言模型具备强大的模式归纳和推理能力，可以从专家的原始工作对话中提取判断逻辑，编码为可被 AI 调用的结构化知识。</p>
+      </div>
+    </div>
+    <div class="highlight reveal reveal-delay-4">
+      <strong>核心命题：</strong>构建一个工程化系统，将专家隐性知识结构化、可复用化、可版本化，形成真正可被 AI 调用的企业知识资产。
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 3: Solution Overview ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">解决方案</div>
+    <h2 class="sec-title reveal reveal-delay-1">Expert Skill — <span class="hl">知识蒸馏引擎</span></h2>
+    <p class="sec-desc reveal reveal-delay-2">一个系统化的知识蒸馏框架，从专家的工作记录中提取专业方法论，生成可被 LLM 直接调用的 Skill 文件。</p>
+    <div class="grid-2">
+      <div>
+        <div class="info-card reveal reveal-delay-1" style="margin-bottom: 16px;">
+          <div class="card-icon">&#127919;</div>
+          <h4>蒸馏什么？</h4>
+          <p>判断框架（遇到问题怎么想）、决策模式（优先考虑什么、红线在哪）、经验规则（踩过的坑、验证过的结论）、知识结构（按类型组织的方法论体系）。</p>
+        </div>
+        <div class="info-card reveal reveal-delay-2">
+          <div class="card-icon">&#128736;</div>
+          <h4>不蒸馏什么？</h4>
+          <p>性格脾气（MBTI、星座）、沟通风格（语气、话术）、人际行为（协作偏好）。产出的 Skill 会说"基于专家的方法论，你应该先检查 Y"，而非模仿某个人的语气说话。</p>
+        </div>
+      </div>
+      <div class="code-block reveal reveal-delay-3">
+<span class="comment">// Expert Skill 核心特征</span>
+
+<span class="dir">&#10003;</span> 5 种专长类型分类学
+<span class="dir">&#10003;</span> 5 步蒸馏流水线
+<span class="dir">&#10003;</span> 5 个数据采集渠道
+<span class="dir">&#10003;</span> 6 种标准化产物文件
+<span class="dir">&#10003;</span> 11 个 Python 工具模块
+<span class="dir">&#10003;</span> 15 个提示词模板
+<span class="dir">&#10003;</span> 原生 Claude Code 集成
+<span class="dir">&#10003;</span> 版本备份 / 回滚 / 持续进化
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 4: Key Metrics ===== -->
+<section class="panel" style="min-height: 60vh;">
+  <div class="panel-inner">
+    <div class="sec-label reveal">关键指标</div>
+    <h2 class="sec-title reveal reveal-delay-1">项目<span class="hl">全景数据</span></h2>
+    <div class="stats-row">
+      <div class="stat-card reveal reveal-delay-1">
+        <div class="stat-icon">&#9881;</div>
+        <div class="stat-num counter" data-target="5">0</div>
+        <div class="stat-lbl">专长类型</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-2">
+        <div class="stat-icon">&#9883;</div>
+        <div class="stat-num counter" data-target="10">0</div>
+        <div class="stat-lbl">Python 工具模块</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-3">
+        <div class="stat-icon">&#128220;</div>
+        <div class="stat-num counter" data-target="15">0</div>
+        <div class="stat-lbl">提示词模板</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-4">
+        <div class="stat-icon">&#128196;</div>
+        <div class="stat-num counter" data-target="6">0</div>
+        <div class="stat-lbl">标准化产物 / Skill</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 5: Expertise Types ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">专长类型体系</div>
+    <h2 class="sec-title reveal reveal-delay-1">五维<span class="hl">专家分类学</span></h2>
+    <p class="sec-desc reveal reveal-delay-2">企业专家的专业能力分为 5 种类型，每种有独特的<strong>知识形态</strong>、<strong>执行模型</strong>和<strong>专属提示词模板</strong>（intake → analyzer → builder）。</p>
+    <div class="grid-5">
+      <div class="info-card reveal reveal-delay-1" style="text-align: center;">
+        <div class="card-icon">&#128300;</div>
+        <h4>诊断专家</h4>
+        <p style="font-size: 11px; color: var(--accent); font-weight: 700; margin-bottom: 8px;">Decision Tree</p>
+        <p>故障模式库<br>诊断决策链<br>嗅觉检查项<br>工具与命令</p>
+      </div>
+      <div class="info-card reveal reveal-delay-2" style="text-align: center;">
+        <div class="card-icon">&#128451;</div>
+        <h4>架构专家</h4>
+        <p style="font-size: 11px; color: var(--accent2); font-weight: 700; margin-bottom: 8px;">Design Principles</p>
+        <p>设计原则<br>技术选型矩阵<br>反模式与红线<br>架构决策记录</p>
+      </div>
+      <div class="info-card reveal reveal-delay-3" style="text-align: center;">
+        <div class="card-icon">&#128269;</div>
+        <h4>审核专家</h4>
+        <p style="font-size: 11px; color: #e11d48; font-weight: 700; margin-bottom: 8px;">Checklist</p>
+        <p>缺陷模式库<br>Review 检查清单<br>风险等级判定<br>争议处理方式</p>
+      </div>
+      <div class="info-card reveal reveal-delay-4" style="text-align: center;">
+        <div class="card-icon">&#9878;</div>
+        <h4>决策专家</h4>
+        <p style="font-size: 11px; color: var(--accent4); font-weight: 700; margin-bottom: 8px;">Decision Framework</p>
+        <p>决策框架<br>风险评估矩阵<br>优先级排序方法<br>历史决策复盘</p>
+      </div>
+      <div class="info-card reveal reveal-delay-4" style="text-align: center;">
+        <div class="card-icon">&#128295;</div>
+        <h4>运维专家</h4>
+        <p style="font-size: 11px; color: var(--accent5); font-weight: 700; margin-bottom: 8px;">Runbook</p>
+        <p>监控指标与阈值<br>标准操作流程<br>升级规则<br>事故处理经验</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 6: vs dot-skill ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">设计定位</div>
+    <h2 class="sec-title reveal reveal-delay-1">Expert-Skill <span class="hl">vs</span> Dot-Skill</h2>
+    <p class="sec-desc reveal reveal-delay-2">同一体系中两个互补引擎——一个蒸馏专业知识，一个蒸馏人格与能力。</p>
+    <table class="diff-table reveal reveal-delay-3">
+      <thead>
+        <tr><th>维度</th><th>Dot-Skill</th><th>Expert-Skill</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>蒸馏目标</td><td>Persona（人格）+ Work Skill（工作能力）</td><td class="col-ours">纯专业知识</td>
+        </tr>
+        <tr>
+          <td>核心关注</td><td>"这个人会怎么说话、怎么做事"</td><td class="col-ours">"这个领域应该怎么做判断"</td>
+        </tr>
+        <tr>
+          <td>角色类型</td><td>colleague / relationship / celebrity</td><td class="col-ours">troubleshooter / architect / reviewer / decision_maker / operator</td>
+        </tr>
+        <tr>
+          <td>模拟人格</td><td>是，模仿语气和沟通风格</td><td class="col-ours">否，只提取专业方法论</td>
+        </tr>
+        <tr>
+          <td>产出结构</td><td>SKILL.md（含 work + persona 两部分）</td><td class="col-ours">SKILL.md + 5 个辅助产物（共 6 个文件）</td>
+        </tr>
+        <tr>
+          <td>知识格式</td><td>行为模式 + 语气模板</td><td class="col-ours">决策树 / 设计原则 / 检查清单 / 决策框架 / Runbook</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== Panel 7: Pipeline ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">核心流程</div>
+    <h2 class="sec-title reveal reveal-delay-1">5 步<span class="hl">知识蒸馏流水线</span></h2>
+    <p class="sec-desc reveal reveal-delay-2">从专家信息录入到最终 Skill 产物写入的完整生命周期，每一步都有专属提示词和工具支持。</p>
+    <div class="pipeline">
+      <div class="pipe-node reveal reveal-delay-1">
+        <div class="pipe-num">1</div>
+        <h4>信息录入</h4>
+        <div class="det">专家称呼<br>基本信息<br>专长类型选择</div>
+      </div>
+      <div class="pipe-connector reveal reveal-delay-1">&#10132;</div>
+      <div class="pipe-node reveal reveal-delay-2">
+        <div class="pipe-num">2</div>
+        <h4>原材料导入</h4>
+        <div class="det">飞书 / 钉钉 / Slack<br>PDF / 邮件 / 图片<br>直接文本粘贴</div>
+      </div>
+      <div class="pipe-connector reveal reveal-delay-2">&#10132;</div>
+      <div class="pipe-node reveal reveal-delay-3">
+        <div class="pipe-num">3</div>
+        <h4>双通道分析</h4>
+        <div class="det">通用分析器<br>+ 专长类型分析器<br>交叉提取方法论</div>
+      </div>
+      <div class="pipe-connector reveal reveal-delay-3">&#10132;</div>
+      <div class="pipe-node reveal reveal-delay-4">
+        <div class="pipe-num">4</div>
+        <h4>生成预览</h4>
+        <div class="det">5-8 行摘要展示<br>用户确认或调整<br>迭代优化</div>
+      </div>
+      <div class="pipe-connector reveal reveal-delay-4">&#10132;</div>
+      <div class="pipe-node reveal reveal-delay-4">
+        <div class="pipe-num">5</div>
+        <h4>写入产物</h4>
+        <div class="det">6 个标准化文件<br>一键安装 Claude Code<br>版本归档</div>
+      </div>
+    </div>
+    <div class="highlight reveal">
+      <strong>设计亮点：</strong>Step 3 采用<strong>通用分析 + 专长分析</strong>双通道设计——通用分析器提取基础方法论，专长分析器补充类型特定的知识结构，两份结果交叉验证、合并输出。
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 8: Data Sources ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">数据采集</div>
+    <h2 class="sec-title reveal reveal-delay-1">多源、<span class="hl">多方案</span>的原材料导入</h2>
+    <p class="sec-desc reveal reveal-delay-2">覆盖企业主流沟通渠道，支持自动采集、链接解析和文件上传三种模式，也可跳过原材料仅凭手动信息生成。</p>
+    <div class="grid-3">
+      <div class="info-card reveal reveal-delay-1">
+        <div class="card-icon">&#9993;</div>
+        <h4>飞书 Feishu</h4>
+        <p>
+          &#9656; <strong>自动采集</strong> — 群聊/私聊消息批量拉取<br>
+          &#9656; <strong>链接解析</strong> — 浏览器方案 + MCP 双通道<br>
+          &#9656; <strong>JSON 导出</strong> — 飞书官方导出格式解析<br>
+          <small style="color: var(--text2);">feishu_auto_collector / feishu_browser / feishu_mcp_client / feishu_parser</small>
+        </p>
+      </div>
+      <div class="info-card reveal reveal-delay-2">
+        <div class="card-icon">&#128172;</div>
+        <h4>钉钉 & Slack</h4>
+        <p>
+          &#9656; <strong>钉钉自动采集</strong> — 消息和文档批量拉取（msg-limit + doc-limit）<br>
+          &#9656; <strong>Slack 采集</strong> — 频道消息导出解析<br>
+          <small style="color: var(--text2);">dingtalk_auto_collector / slack_auto_collector</small>
+        </p>
+      </div>
+      <div class="info-card reveal reveal-delay-3">
+        <div class="card-icon">&#128196;</div>
+        <h4>文件 & 直接输入</h4>
+        <p>
+          &#9656; <strong>PDF / 图片</strong> — Read 工具直接读取<br>
+          &#9656; <strong>邮件 .eml</strong> — email_parser 解析<br>
+          &#9656; <strong>直接粘贴</strong> — 文本即原材料<br>
+          &#9656; <strong>跳过原材料</strong> — 仅凭手动信息也可生成
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 9: Analysis Architecture ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">分析架构</div>
+    <h2 class="sec-title reveal reveal-delay-1">双通道交叉分析 + <span class="hl">专长专属模板</span></h2>
+    <p class="sec-desc reveal reveal-delay-2">通用分析器提取基础方法论，专长分析器补充类型特定的知识结构，两份结果合并生成完整知识图谱。</p>
+    <div class="grid-2">
+      <div>
+        <div class="info-card reveal reveal-delay-1">
+          <h4 style="color: var(--accent3);">通用分析维度</h4>
+          <ul style="font-size: 13px; color: var(--text2); line-height: 2; padding-left: 18px; margin-top: 8px;">
+            <li><strong style="color: var(--text);">专业领域</strong> — 负责的系统、技术栈、职责边界</li>
+            <li><strong style="color: var(--text);">判断框架</strong> — 优先检查项、分析路径、经验规则</li>
+            <li><strong style="color: var(--text);">决策模式</strong> — 考量排序、技术红线、何时说不</li>
+            <li><strong style="color: var(--text);">知识结构</strong> — 按专长类型组织的结构化方法论</li>
+            <li><strong style="color: var(--text);">经验知识库</strong> — 原话引用 + 结论提炼</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="info-card reveal reveal-delay-2">
+          <h4 style="color: var(--accent2);">专长专项维度（以诊断专家为例）</h4>
+          <ul style="font-size: 13px; color: var(--text2); line-height: 2; padding-left: 18px; margin-top: 8px;">
+            <li><strong style="color: var(--text);">故障模式库</strong> — 经常处理的故障类型及特征</li>
+            <li><strong style="color: var(--text);">诊断决策链</strong> — 从症状到根因的排查路径</li>
+            <li><strong style="color: var(--text);">嗅觉检查项</strong> — "一上来就查"的固定检查</li>
+            <li><strong style="color: var(--text);">工具与命令</strong> — 诊断工具箱及使用场景</li>
+            <li><strong style="color: var(--text);">常见误判</strong> — 看起来像 A 实际是 B 的模式</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="highlight reveal reveal-delay-3">
+      <strong>关键原则：</strong>有依据才写，没有就标注"原材料不足"。有原文依据的结论加引号标注原话。不做性格推断，不分析沟通风格。输出要求具体可执行——不要"可能""倾向于"，要"先查 X，再查 Y，如果 XYZ 同时出现则是 Z"。
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 10: Output ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">产出结构</div>
+    <h2 class="sec-title reveal reveal-delay-1">6 种标准化产物，覆盖<span class="hl">完整信息密度谱</span></h2>
+    <p class="sec-desc reveal reveal-delay-2">每个蒸馏出的专家 Skill 生成从人类可读到机器可解析的完整文件体系，兼顾可读性和可编程性。</p>
+    <div class="grid-2">
+      <div class="code-block reveal reveal-delay-1">
+<span class="comment">skills/expert/{slug}/</span>
+<span class="dir">&#9500;</span><span class="dir">&#9472;</span><span class="dir">&#9472;</span> <span class="file">SKILL.md</span>            <span class="comment">&#8592; 可直接被 Claude Code 加载</span>
+<span class="dir">&#9500;</span><span class="dir">&#9472;</span><span class="dir">&#9472;</span> <span class="file">expertise.md</span>        <span class="comment">&#8592; 纯专业知识（无身份包装）</span>
+<span class="dir">&#9500;</span><span class="dir">&#9472;</span><span class="dir">&#9472;</span> <span class="file">knowledge_graph.md</span>  <span class="comment">&#8592; 结构化知识图谱</span>
+<span class="dir">&#9500;</span><span class="dir">&#9472;</span><span class="dir">&#9472;</span> <span class="file">heuristics.json</span>     <span class="comment">&#8592; 启发式规则（可编程调用）</span>
+<span class="dir">&#9500;</span><span class="dir">&#9472;</span><span class="dir">&#9472;</span> <span class="file">meta.json</span>           <span class="comment">&#8592; 生命周期 & 来源元数据</span>
+<span class="dir">&#9500;</span><span class="dir">&#9472;</span><span class="dir">&#9472;</span> <span class="file">manifest.json</span>       <span class="comment">&#8592; 安装/分发清单</span>
+<span class="dir">&#9492;</span><span class="dir">&#9472;</span><span class="dir">&#9472;</span> <span class="file">versions/</span>           <span class="comment">&#8592; 历史版本归档（&#8804;10）</span>
+      </div>
+      <div>
+        <div class="info-card reveal reveal-delay-2" style="margin-bottom: 12px;">
+          <h4>&#128214; SKILL.md（入口文件）</h4>
+          <p style="font-size: 12px;">完整 Skill 文件，含 frontmatter、专家身份、专业知识、执行规则。用户可直接通过 <code>/expert-skill</code> 或作为普通 Skill 调用。</p>
+        </div>
+        <div class="info-card reveal reveal-delay-3" style="margin-bottom: 12px;">
+          <h4>&#128295; heuristics.json（机器接口）</h4>
+          <p style="font-size: 12px;">结构化启发式规则，包含 knowledge_format（决策树/设计原则/检查清单/决策框架/Runbook）和 execution_model，可供下游程序化消费。</p>
+        </div>
+        <div class="info-card reveal reveal-delay-4" style="margin-bottom: 12px;">
+          <h4>&#128451; manifest.json（分发清单）</h4>
+          <p style="font-size: 12px;">安装清单，声明兼容运行时（Claude Code / OpenClaw / Hermes / Codex）、入口点、能力标签和引擎信息。</p>
+        </div>
+        <div class="info-card reveal reveal-delay-4">
+          <h4>&#128260; meta.json（可审计元数据）</h4>
+          <p style="font-size: 12px;">完整元数据——生命周期（created/updated/version/status）、分类（类型/知识格式/执行模型）、来源追溯（knowledge_sources）。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 11: Tech Architecture ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">技术架构</div>
+    <h2 class="sec-title reveal reveal-delay-1">分层<span class="hl">模块化设计</span></h2>
+    <p class="sec-desc reveal reveal-delay-2">Python 工具链负责数据采集和产物写入，Markdown 提示词库负责知识分析和构建，两者通过 skill_schema.py 和 expertise_presets.py 协同工作。</p>
+    <div class="arch-wrap">
+      <div class="arch-row reveal reveal-delay-1">
+        <div class="arch-row-lbl">用户层</div>
+        <div class="arch-boxes">
+          <div class="arch-chip c1">/expert-skill 命令</div>
+          <div class="arch-chip c1">CLI 工具</div>
+          <div class="arch-chip c1">交互式对话</div>
+        </div>
+      </div>
+      <div class="arch-row reveal reveal-delay-2">
+        <div class="arch-row-lbl">采集层</div>
+        <div class="arch-boxes">
+          <div class="arch-chip c4">feishu_auto_collector</div>
+          <div class="arch-chip c4">dingtalk_auto_collector</div>
+          <div class="arch-chip c4">slack_auto_collector</div>
+          <div class="arch-chip c4">email_parser</div>
+          <div class="arch-chip c4">feishu_parser</div>
+        </div>
+      </div>
+      <div class="arch-row reveal reveal-delay-3">
+        <div class="arch-row-lbl">分析层</div>
+        <div class="arch-boxes">
+          <div class="arch-chip c2">expertise_analyzer.md</div>
+          <div class="arch-chip c2">5 × 专长 analyzer.md</div>
+          <div class="arch-chip c2">expertise_presets.py</div>
+          <div class="arch-chip c2">skill_schema.py</div>
+        </div>
+      </div>
+      <div class="arch-row reveal reveal-delay-3">
+        <div class="arch-row-lbl">构建层</div>
+        <div class="arch-boxes">
+          <div class="arch-chip c2">expertise_builder.md</div>
+          <div class="arch-chip c2">5 × 专长 builder.md</div>
+          <div class="arch-chip c2">skill_writer.py</div>
+        </div>
+      </div>
+      <div class="arch-row reveal reveal-delay-4">
+        <div class="arch-row-lbl">存储层</div>
+        <div class="arch-boxes">
+          <div class="arch-chip c3">SKILL.md</div>
+          <div class="arch-chip c3">expertise.md</div>
+          <div class="arch-chip c3">knowledge_graph.md</div>
+          <div class="arch-chip c3">heuristics.json</div>
+          <div class="arch-chip c3">meta.json</div>
+          <div class="arch-chip c3">manifest.json</div>
+          <div class="arch-chip c3">versions/</div>
+        </div>
+      </div>
+      <div class="arch-row reveal reveal-delay-4">
+        <div class="arch-row-lbl">运维层</div>
+        <div class="arch-boxes">
+          <div class="arch-chip c4">version_manager.py</div>
+          <div class="arch-chip c4">CLI backup / rollback</div>
+          <div class="arch-chip c4">增量进化模式</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 12: Version Management ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">版本管理</div>
+    <h2 class="sec-title reveal reveal-delay-1">持续<span class="hl">进化</span> & 安全回滚</h2>
+    <p class="sec-desc reveal reveal-delay-2">专家知识不是一成不变的。系统支持增量追加新材料，每次更新自动归档，最多保留 10 个历史版本，任意版本一键回滚。</p>
+    <div class="grid-2">
+      <div class="info-card reveal reveal-delay-1">
+        <h4>&#128228; 进化模式：追加材料</h4>
+        <div class="timeline" style="margin-top: 16px;">
+          <div class="tl-item">
+            <div class="tl-num">1</div>
+            <div class="tl-content"><h4>提供新素材</h4><p>用户提供新文件/消息记录/文档</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-num">2</div>
+            <div class="tl-content"><h4>读取现有知识</h4><p>加载 skills/expert/{slug}/expertise.md</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-num">3</div>
+            <div class="tl-content"><h4>自动归档</h4><p>version_manager backup 保存当前版本</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-num">4</div>
+            <div class="tl-content"><h4>增量合并</h4><p>分析增量内容，合并到专业知识中</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-num">5</div>
+            <div class="tl-content"><h4>重建产物</h4><p>写入 expertise.md + 重建 SKILL.md，v1 → v2</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="info-card reveal reveal-delay-2">
+        <h4>&#128259; 回滚机制</h4>
+        <ul style="font-size: 13px; color: var(--text2); line-height: 2.2; padding-left: 18px; margin-top: 16px;">
+          <li>每次更新前<strong style="color: var(--text);">自动备份</strong>当前全部产物</li>
+          <li>最多保留 <strong style="color: var(--accent3);">10 个历史版本</strong>，超出自动清理最旧版本</li>
+          <li>回滚时<strong style="color: var(--text);">先备份当前状态</strong>，再恢复目标版本</li>
+          <li>每个版本记录 <strong style="color: var(--text);">_info.json</strong>（时间戳 + 产物清单 + 备份时间）</li>
+          <li>CLI 一键操作，支持交互式版本选择</li>
+        </ul>
+        <div class="code-block" style="margin-top: 12px; font-size: 11px;">
+$ python3 tools/version_manager.py \
+    --action rollback \
+    --slug zhang-san \
+    --version v3
+Backed up zhang-san as version v5
+Rolled back zhang-san to version v3
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 13: Pipeline Detail ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">提示词体系</div>
+    <h2 class="sec-title reveal reveal-delay-1"><span class="hl">15 个</span>提示词模板的分层架构</h2>
+    <p class="sec-desc reveal reveal-delay-2">每个专长类型拥有独立的 intake → analyzer → builder 三件套，加上通用模板，构成完整的知识蒸馏提示词矩阵。</p>
+    <div class="grid-2">
+      <div class="info-card reveal reveal-delay-1">
+        <h4 style="color: var(--accent);">通用模板（3 个）</h4>
+        <table style="width: 100%; font-size: 13px; margin-top: 12px; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; font-weight: 600; color: var(--text);">intake.md</td>
+            <td style="padding: 8px 0; color: var(--text2);">基础信息录入——4 个引导性问题（称呼/信息/类型/深度描述），含确认汇总流程</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 0; font-weight: 600; color: var(--text);">analyzer.md</td>
+            <td style="padding: 8px 0; color: var(--text2);">通用专业知识分析——5 个提取维度（领域/判断框架/决策模式/知识结构/经验库），含输出格式模板</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; font-weight: 600; color: var(--text);">builder.md</td>
+            <td style="padding: 8px 0; color: var(--text2);">专业知识构建——将分析结果格式化为标准化 expertise.md，含 5 条生成注意事项</td>
+          </tr>
+        </table>
+      </div>
+      <div class="info-card reveal reveal-delay-2">
+        <h4 style="color: var(--accent3);">专长模板（5 类 × 3 = 15 个）</h4>
+        <table style="width: 100%; font-size: 13px; margin-top: 12px; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 6px 0; font-weight: 600; color: #c4b5fd;">troubleshooter/</td>
+            <td style="padding: 6px 0; color: var(--text2);">intake / analyzer / builder</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 6px 0; font-weight: 600; color: #67e8f9;">architect/</td>
+            <td style="padding: 6px 0; color: var(--text2);">intake / analyzer / builder</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 6px 0; font-weight: 600; color: #fda4af;">reviewer/</td>
+            <td style="padding: 6px 0; color: var(--text2);">intake / analyzer / builder</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 6px 0; font-weight: 600; color: #fcd34d;">decision_maker/</td>
+            <td style="padding: 6px 0; color: var(--text2);">intake / analyzer / builder</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; font-weight: 600; color: #6ee7b7;">operator/</td>
+            <td style="padding: 6px 0; color: var(--text2);">intake / analyzer / builder</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 14: Use Cases ===== -->
+<section class="panel">
+  <div class="panel-inner">
+    <div class="sec-label reveal">应用场景</div>
+    <h2 class="sec-title reveal reveal-delay-1">从<span class="hl">个人工具</span>到团队知识库</h2>
+    <p class="sec-desc reveal reveal-delay-2">Expert Skill 在多个层面发挥作用——从 Code Review 到应急响应，从新人培训到架构评审。</p>
+    <div class="grid-3">
+      <div class="info-card reveal reveal-delay-1">
+        <div class="card-icon">&#128269;</div>
+        <h4>Code Review 增强</h4>
+        <p>加载审核专家的 Skill，自动按检查清单审查代码，识别常见缺陷模式，给出风险等级判定（blocker / warning / nit）。</p>
+      </div>
+      <div class="info-card reveal reveal-delay-2">
+        <div class="card-icon">&#128736;</div>
+        <h4>故障诊断辅助</h4>
+        <p>加载诊断专家的 Skill，按诊断决策链排查，执行嗅觉检查项，参考故障模式库快速定位根因。</p>
+      </div>
+      <div class="info-card reveal reveal-delay-3">
+        <div class="card-icon">&#128451;</div>
+        <h4>架构方案评审</h4>
+        <p>加载架构专家的 Skill，用设计原则和技术选型矩阵评估方案，识别反模式和红线违规，生成 ADR。</p>
+      </div>
+      <div class="info-card reveal reveal-delay-1">
+        <div class="card-icon">&#9878;</div>
+        <h4>技术决策支持</h4>
+        <p>加载决策专家的 Skill，应用决策框架和风险评估矩阵，在不确定条件下做出结构化权衡。</p>
+      </div>
+      <div class="info-card reveal reveal-delay-2">
+        <div class="card-icon">&#128680;</div>
+        <h4>应急响应 SOP</h4>
+        <p>加载运维专家的 Skill，按标准操作流程处理事故，自动判断升级条件，参考历史事故处理经验。</p>
+      </div>
+      <div class="info-card reveal reveal-delay-3">
+        <div class="card-icon">&#128218;</div>
+        <h4>新人 Onboarding</h4>
+        <p>将多位专家的 Skill 组合成团队知识库，新人即时获取专家的判断框架和方法论，缩短上手周期。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Panel 15: Outro ===== -->
+<section class="panel outro-panel">
+  <div class="panel-inner" style="text-align: center;">
+    <div class="sec-label reveal">总结与展望</div>
+    <h2 class="sec-title reveal reveal-delay-1">让<span class="hl">隐性知识</span>成为企业资产</h2>
+    <div class="num-banner">
+      <div class="num-big reveal reveal-delay-1">
+        <div class="big counter" data-target="5">0</div>
+        <div class="tag">专长类型</div>
+      </div>
+      <div class="num-big reveal reveal-delay-2">
+        <div class="big counter" data-target="10">0</div>
+        <div class="tag">工具模块</div>
+      </div>
+      <div class="num-big reveal reveal-delay-3">
+        <div class="big counter" data-target="15">0</div>
+        <div class="tag">提示词模板</div>
+      </div>
+      <div class="num-big reveal reveal-delay-4">
+        <div class="big counter" data-target="6">0</div>
+        <div class="tag">标准化产物</div>
+      </div>
+    </div>
+    <p class="reveal reveal-delay-4" style="font-size: 18px; color: var(--text2); max-width: 700px; margin: 0 auto; line-height: 1.8;">
+      <strong style="color: var(--text);">Expert Skill</strong> 是一个完整的知识蒸馏工程体系，覆盖从数据采集、分析提取到产物生成、版本管理的全链路。它将企业专家那些<strong style="color: #a78bfa;">来不及写、写不出来、写了没人看</strong>的隐性知识，转化为可被 AI 反复调用的<strong style="color: #fbbf24;">结构化专业方法论</strong>。
+    </p>
+    <p class="reveal reveal-delay-4" style="font-size: 14px; color: var(--text2); margin-top: 32px;">
+      Enterprise Expert Skill v1.0.0 &nbsp;|&nbsp; 2026-05-06 &nbsp;|&nbsp; ~5,700 行代码
+    </p>
+  </div>
+</section>
+
+<script>
+// ===== Canvas Particle Background =====
+(function() {
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let mouseX = 0, mouseY = 0;
+  let w, h;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Particle {
+    constructor() {
+      this.reset();
+      this.y = Math.random() * h;
+    }
+    reset() {
+      this.x = Math.random() * w;
+      this.y = -10;
+      this.size = Math.random() * 2 + 0.5;
+      this.speed = Math.random() * 0.4 + 0.1;
+      this.opacity = Math.random() * 0.4 + 0.1;
+      this.wobble = Math.random() * 0.3;
+      this.wobbleSpeed = Math.random() * 0.01 + 0.005;
+      this.wobbleOffset = Math.random() * Math.PI * 2;
+    }
+    update() {
+      this.y += this.speed;
+      this.x += Math.sin(this.y * this.wobbleSpeed + this.wobbleOffset) * this.wobble;
+      // Drift toward mouse
+      const dx = mouseX - this.x;
+      const dy = mouseY - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 200) {
+        this.x -= dx * 0.002;
+        this.y -= dy * 0.002;
+      }
+      if (this.y > h + 10) this.reset();
+      if (this.x < -10) this.x = w + 10;
+      if (this.x > w + 10) this.x = -10;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(167,139,250,${this.opacity})`;
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < 80; i++) {
+    const p = new Particle();
+    p.y = Math.random() * h;
+    particles.push(p);
+  }
+
+  document.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => { p.update(); p.draw(); });
+
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(108,92,231,${0.06 * (1 - dist / 120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ===== Progress Bar =====
+(function() {
+  const bar = document.getElementById('progressBar');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    bar.style.width = pct + '%';
+  });
+})();
+
+// ===== Scroll Reveal =====
+(function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+})();
+
+// ===== Animated Counters =====
+(function() {
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseInt(el.getAttribute('data-target'));
+        const duration = 1500;
+        const start = performance.now();
+        function tick(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          // ease-out
+          const val = Math.round(target * (1 - Math.pow(1 - progress, 3)));
+          el.textContent = val;
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+        counterObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.6 });
+
+  document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el));
+})();
+</script>
+
+</body>
+</html>
