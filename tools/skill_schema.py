@@ -22,6 +22,11 @@ PRIMARY_ARTIFACTS = (
     "heuristics.json",
     "manifest.json",
 )
+# Discovery artifacts (optional, generated only in discovery mode)
+DISCOVERY_ARTIFACTS = (
+    "latent_report.md",
+    "interview_transcript.md",
+)
 
 
 def now_iso() -> str:
@@ -64,6 +69,8 @@ def build_artifact_names(meta: dict) -> dict:
         "knowledge_graph": "knowledge_graph.md",
         "heuristics": "heuristics.json",
         "manifest": "manifest.json",
+        "latent_report": "latent_report.md",
+        "interview_transcript": "interview_transcript.md",
         "combined_name": f"{prefix}_{slug}",
         "combined_command": f"expert-{command_slug}",
     }
@@ -119,12 +126,35 @@ def enrich_expert_meta(meta: dict, slug: str, expertise_type: str | None = None)
         identity = build_identity_string(result)
         result["summary"] = f"{display_name}, {identity}"
 
+    discovery = result.setdefault("discovery", {})
+    discovery.setdefault("enabled", False)
+    discovery.setdefault("status", "not_started")
+    discovery.setdefault("interview_count", 0)
+    discovery.setdefault("latent_variable_count", 0)
+    discovery.setdefault("confidence_summary", {})
+
     return result
 
 
 def build_manifest(meta: dict) -> dict:
     """Build a manifest for install and gallery flows."""
     artifacts = meta["artifacts"]
+    manifest_artifacts = [
+        artifacts["combined_skill"],
+        artifacts["expertise_doc"],
+        artifacts["knowledge_graph"],
+        artifacts["heuristics"],
+        "meta.json",
+        artifacts["manifest"],
+    ]
+    capabilities = ["expertise"]
+    discovery = meta.get("discovery", {})
+    if discovery.get("enabled"):
+        capabilities.append("discovery")
+    if discovery.get("report_generated"):
+        manifest_artifacts.append(artifacts.get("latent_report", "latent_report.md"))
+    if discovery.get("transcript_generated"):
+        manifest_artifacts.append(artifacts.get("interview_transcript", "interview_transcript.md"))
     return {
         "manifest_version": "1",
         "id": meta["id"],
@@ -135,15 +165,8 @@ def build_manifest(meta: dict) -> dict:
         "entrypoints": {
             "default": artifacts["combined_skill"],
         },
-        "artifacts": [
-            artifacts["combined_skill"],
-            artifacts["expertise_doc"],
-            artifacts["knowledge_graph"],
-            artifacts["heuristics"],
-            "meta.json",
-            artifacts["manifest"],
-        ],
-        "capabilities": ["expertise"],
+        "artifacts": manifest_artifacts,
+        "capabilities": capabilities,
         "engine": {
             "name": "expert-skill",
             "kind": "expert-skill",

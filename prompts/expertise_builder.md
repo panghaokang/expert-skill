@@ -92,3 +92,16 @@
 3. 技术栈和规范要直接可执行
 4. 判断框架要保留专家的原话风味（但去掉语气词和闲聊）
 5. 不要包含任何性格描述或沟通风格分析
+
+---
+
+### 隐性知识融合输入（可选）
+
+{interview_analysis_json}
+（来自 P6 `interview_analysis.json`，包含 `triplet_analyses`、`cross_analysis`、`report_sections`）
+
+融合要求：
+- 访谈中的实际行为选择优先于材料陈述的规则（若冲突，以访谈为准）
+- 隐性变量和边界条件必须进入 expertise.md 的实质性内容，不能只作为附录
+- priority_topology 中的冲突取舍关系必须体现在执行规则段
+- boundary_map 中的边界条件必须以"适用条件：X / 失效条件：Y"格式写入

@@ -1,0 +1,67 @@
+[
+  {
+    "id": "lv_001",
+    "label": "扩容 vs 限流决策阈值",
+    "source_type": "comparison_gap",
+    "evidence_from_profile": "多次决策中选择扩容还是限流的标准从未明确",
+    "hypothesized_variable": {
+      "name": "资源利用率触发阈值",
+      "description": "专家内部使用的资源使用率临界点，达到此点时才考虑扩容",
+      "why_latent": "从未在公开讨论或文档中明确这个阈值"
+    },
+    "testability": "high",
+    "priority": 9
+  },
+  {
+    "id": "lv_002",
+    "label": "故障等级主观判断标准",
+    "source_type": "rule_boundary",
+    "evidence_from_profile": "不同事故中的等级划定标准表现不一致",
+    "hypothesized_variable": {
+      "name": "业务影响隐性权重",
+      "description": "专家评估故障等级时对业务影响的隐性加权方式",
+      "why_latent": "正式定义是客观的，但实际判断加入了主观业务影响估算"
+    },
+    "testability": "high",
+    "priority": 8
+  },
+  {
+    "id": "lv_003",
+    "label": "慢查询累积容忍度",
+    "source_type": "silent_topic",
+    "evidence_from_profile": "所有材料中从未讨论何时开始主动处理慢查询累积问题",
+    "hypothesized_variable": {
+      "name": "慢查询介入阈值",
+      "description": "专家决定主动介入慢查询问题时的内部门槛",
+      "why_latent": "这是一个从未被显性记录过的判断维度"
+    },
+    "testability": "medium",
+    "priority": 7
+  },
+  {
+    "id": "lv_004",
+    "label": "跨服务链路追踪深度截止规则",
+    "source_type": "domain_disagreement",
+    "evidence_from_profile": "不同案例中链路追踪的追踪深度不一致",
+    "hypothesized_variable": {
+      "name": "链路追踪截止层级",
+      "description": "专家决定追踪到哪一层时使用的隐性规则",
+      "why_latent": "表面上是技术判断，实则包含对业务紧急程度的评估"
+    },
+    "testability": "medium",
+    "priority": 6
+  },
+  {
+    "id": "lv_005",
+    "label": "熔断触发时机",
+    "source_type": "comparison_gap",
+    "evidence_from_profile": "不同事故中熔断触发时机和条件不同",
+    "hypothesized_variable": {
+      "name": "下游恢复预期模型",
+      "description": "专家对下游服务恢复时间的预判如何影响是否触发熔断",
+      "why_latent": "熔断决策看起来是即时反应，但包含了对下游的时间预测"
+    },
+    "testability": "high",
+    "priority": 8
+  }
+]

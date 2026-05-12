@@ -1,0 +1,146 @@
+[
+  {
+    "id": "tg_001",
+    "target_variable": "lv_001",
+    "target_variable_label": "扩容 vs 限流决策阈值",
+    "domain_context": "分布式系统在高流量场景下的资源决策",
+    "question_A": {
+      "text": "当服务请求量突然上升 50%，CPU 使用率到了 75%，你会优先考虑扩容还是限流？",
+      "probes": {
+        "primary": "你刚才是怎么想到这个的？",
+        "followups": ["你有具体的判断标准吗？", "你一般什么时候开始考虑扩容？"],
+        "signal_triggers": {
+          "noticed": "你看出来什么不同让你改了判断？",
+          "hesitated": "你在衡量什么？",
+          "boundary_invented": "你怎么知道这个边界在哪的？",
+          "contradiction": "你之前说的原则是 X，但这里你选了 Y，这是什么情况？",
+          "pushback": "你觉得这个问题的前提有什么问题？"
+        }
+      },
+      "expected_reveals": {
+        "visible_rule": "资源利用率超过特定阈值才考虑扩容",
+        "latent_variable": "业务高峰期对扩容延迟的容忍度",
+        "priority_signal": "扩容时间成本 vs 限流带来的业务损失"
+      }
+    },
+    "question_B": {
+      "text": "如果这次请求量上升是由于热点新闻导致的突发流量，预计会在 1 小时后回落，你会怎么决策？",
+      "variable_changed": "流量来源从常规增长变为预期 1 小时内回落的突发热点",
+      "probes": {
+        "primary": "这两种情况你处理方式不一样，是什么原因？",
+        "followups": ["你怎么判断这是临时的还是持续的？"],
+        "signal_triggers": {
+          "noticed": "你看出来什么不同让你改了判断？",
+          "hesitated": "你在衡量什么？",
+          "boundary_invented": "你怎么知道这个边界在哪的？",
+          "contradiction": "你之前说的原则和这里的选择有什么不一致？",
+          "pushback": "你觉得这个问题有什么假设不对？"
+        }
+      },
+      "expected_reveals": {
+        "visible_rule": "临时流量优先限流，持续增长才考虑扩容",
+        "latent_variable": "流量持续性预判的时间窗口阈值",
+        "priority_signal": "扩容成本 vs 临时限流的用户体验损失"
+      }
+    },
+    "question_C": {
+      "text": "如果同时还有一个核心下游服务强依赖你的系统，它正在等你的响应才能继续处理，你会怎么做？",
+      "variable_changed": "加入下游服务的强依赖约束",
+      "conflict_added": "下游服务等待恢复的紧迫性 vs 系统安全扩容所需时间的冲突",
+      "probes": {
+        "primary": "你最纠结的是哪一点？",
+        "followups": ["什么情况下你会做出完全相反的选择？"],
+        "signal_triggers": {
+          "noticed": "你看出来什么不同让你改了判断？",
+          "hesitated": "你在衡量什么？",
+          "boundary_invented": "你怎么知道这个边界在哪的？",
+          "contradiction": "你之前的决策原则和现在有矛盾吗？",
+          "pushback": "你觉得这个场景设置有什么问题？"
+        }
+      },
+      "expected_reveals": {
+        "visible_rule": "下游影响超过自身损失时优先恢复",
+        "latent_variable": "下游依赖强度对决策的隐性权重",
+        "priority_signal": "服务链路恢复顺序的优先级规则"
+      }
+    },
+    "control_notes": "A 控制基准场景，B 改变流量持续性特征，C 增加下游依赖约束",
+    "quality_notes": {
+      "single_variable_control": "每题只改变一个核心变量：流量特征或依赖约束",
+      "unpredictability": "专家无法预判哪个维度会变化，防止提前准备答案",
+      "decision_difference": "三层预期会产生扩容、限流、优先下游恢复三种不同决策"
+    }
+  },
+  {
+    "id": "tg_002",
+    "target_variable": "lv_003",
+    "target_variable_label": "慢查询累积容忍度",
+    "domain_context": "数据库慢查询在生产环境中的处理决策",
+    "question_A": {
+      "text": "数据库监控显示有 5 条慢查询，P99 延迟是平时的 2 倍，持续了 10 分钟，你会立即介入吗？",
+      "probes": {
+        "primary": "你刚才是怎么想到这个的？",
+        "followups": ["你的判断标准是什么？", "什么情况下你会等待观察？"],
+        "signal_triggers": {
+          "noticed": "你看出来什么不同让你改了判断？",
+          "hesitated": "你在衡量什么？",
+          "boundary_invented": "你怎么知道这个边界在哪的？",
+          "contradiction": "你之前的原则和这里的选择有什么不一致？",
+          "pushback": "你觉得这个问题的假设有什么问题？"
+        }
+      },
+      "expected_reveals": {
+        "visible_rule": "延迟超过阈值才介入慢查询",
+        "latent_variable": "慢查询数量与延迟幅度的联合评估门槛",
+        "priority_signal": "立即介入 vs 等待更多观测数据"
+      }
+    },
+    "question_B": {
+      "text": "如果这 5 条慢查询持续了 40 分钟，但 P99 延迟只升了 1.3 倍，你还会立即介入吗？",
+      "variable_changed": "持续时间从 10 分钟延长到 40 分钟，但延迟增幅缩小",
+      "probes": {
+        "primary": "这和前面的情况你处理方式不一样，是什么原因？",
+        "followups": ["时间因素对你的判断有多大影响？"],
+        "signal_triggers": {
+          "noticed": "你看出来什么不同让你改了判断？",
+          "hesitated": "你在衡量什么？",
+          "boundary_invented": "你怎么知道这个边界在哪的？",
+          "contradiction": "你之前说的标准和这里不一致，是什么情况？",
+          "pushback": "你觉得这个比较不公平在哪里？"
+        }
+      },
+      "expected_reveals": {
+        "visible_rule": "持续时间是独立于延迟幅度的判断维度",
+        "latent_variable": "时间累积权重与延迟幅度的组合规则",
+        "priority_signal": "持续性风险 vs 即时性风险的权衡"
+      }
+    },
+    "question_C": {
+      "text": "如果同时还有一个大促活动在 2 小时后开始，而这些慢查询可能在大促高峰时爆发，你会怎么做？",
+      "variable_changed": "加入时间窗口压力和即将到来的业务节点约束",
+      "conflict_added": "主动处理慢查询的风险 vs 大促前保持系统稳定不做变更的原则冲突",
+      "probes": {
+        "primary": "你最纠结的是哪一点？",
+        "followups": ["什么情况下你会做出完全相反的选择？"],
+        "signal_triggers": {
+          "noticed": "你看出来什么不同让你改了判断？",
+          "hesitated": "你在衡量什么？",
+          "boundary_invented": "你怎么知道这个边界在哪的？",
+          "contradiction": "你之前的判断原则和这个场景有冲突吗？",
+          "pushback": "你觉得这个场景设计有什么问题？"
+        }
+      },
+      "expected_reveals": {
+        "visible_rule": "大促前优先保守处理，避免引入新变化",
+        "latent_variable": "业务节点临近度对技术介入决策的影响",
+        "priority_signal": "技术风险处理 vs 变更冻结原则的优先级"
+      }
+    },
+    "control_notes": "A 控制基准延迟场景，B 改变时间和幅度组合，C 增加业务节点约束",
+    "quality_notes": {
+      "single_variable_control": "每题改变一个核心变量：延迟幅度或业务时间窗口",
+      "unpredictability": "专家难以预判两题的差异方向",
+      "decision_difference": "三层预期会产生立即介入、观察等待、冻结处理三种不同决策"
+    }
+  }
+]

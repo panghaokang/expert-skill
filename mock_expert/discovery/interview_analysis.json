@@ -1,0 +1,137 @@
+{
+  "triplet_analyses": [
+    {
+      "triplet_id": "tg_001",
+      "baseline_rule": "CPU 利用率到 85% 以上才考虑扩容，否则优先限流；内存 90% 同理",
+      "awareness_state": "semi_latent",
+      "priority_topology": {
+        "winner": "限流",
+        "loser": "扩容",
+        "condition": "CPU < 85% 且流量为临时突发"
+      },
+      "confidence": "high",
+      "latent_findings": [
+        {
+          "type": "variable",
+          "content": "CPU 85% 扩容触发阈值（内存 90%）",
+          "confidence": "high",
+          "evidence": {
+            "triplet_id": "tg_001",
+            "layer": "A",
+            "expert_quote": "75% 的话我不会立刻扩容。我有个内部标准，CPU 到 85% 以上、内存到 90% 以上才触发扩容评估。"
+          }
+        },
+        {
+          "type": "variable",
+          "content": "临时热点流量的判断依据：外部下降信号存在才锁定为临时",
+          "confidence": "medium",
+          "evidence": {
+            "triplet_id": "tg_001",
+            "layer": "B",
+            "expert_quote": "如果我有外部信号，比如这个热点事件已经过了顶峰，下降趋势出来了，那我就锁定为临时，只限流。"
+          }
+        }
+      ],
+      "invalidated_candidates": [],
+      "evidence": {
+        "triplet_id": "tg_001",
+        "layer": "A",
+        "expert_quote": "75% 的话我不会立刻扩容。我有个内部标准，CPU 到 85% 以上才触发扩容评估。",
+        "confidence_reason": "专家明确说出了具体数值阈值，高置信度"
+      }
+    },
+    {
+      "triplet_id": "tg_002",
+      "baseline_rule": "慢查询 P99 延迟绝对值超 200ms 且持续 10 分钟以上才介入；持续 40 分钟以上即使幅度小也介入",
+      "awareness_state": "deep_latent",
+      "priority_topology": {
+        "winner": "持续时间判断",
+        "loser": "延迟幅度判断",
+        "condition": "持续时间 > 30 分钟"
+      },
+      "confidence": "medium",
+      "latent_findings": [
+        {
+          "type": "variable",
+          "content": "慢查询介入时间阈值：40 分钟是介入坎，30 分钟开始担心",
+          "confidence": "medium",
+          "evidence": {
+            "triplet_id": "tg_002",
+            "layer": "B",
+            "expert_quote": "40 分钟我觉得是一个坎，超过这个就算幅度不大，我也要动了。"
+          }
+        },
+        {
+          "type": "variable",
+          "content": "大促前 2 小时变更冻结边界",
+          "confidence": "high",
+          "evidence": {
+            "triplet_id": "tg_002",
+            "layer": "C",
+            "expert_quote": "大促前 2 小时是变更冻结期，只做无风险操作。"
+          }
+        }
+      ],
+      "invalidated_candidates": [],
+      "evidence": {
+        "triplet_id": "tg_002",
+        "layer": "B",
+        "expert_quote": "40 分钟的话，这个持续性本身就是信号——它在告诉我这不是随机波动。",
+        "confidence_reason": "专家首次明确说出时间阈值，但之前材料完全没有记录，属于深度隐性"
+      }
+    }
+  ],
+  "cross_analysis": {
+    "confirmed_variables": ["lv_001", "lv_003"],
+    "inconsistent_variables": [],
+    "priority_topology": [
+      {
+        "winner": "限流",
+        "loser": "扩容",
+        "condition": "CPU < 85% 且流量为临时突发或消息队列堆积"
+      },
+      {
+        "winner": "持续时间维度",
+        "loser": "延迟幅度维度",
+        "condition": "慢查询持续 30 分钟以上时持续时间成为主要判断维度"
+      }
+    ],
+    "boundary_map": [
+      {
+        "triplet_id": "tg_001",
+        "boundary": "外部下降信号存在时才锁定为临时流量，否则保留扩容选项",
+        "applicable_domain": "热点突发流量场景，下降趋势已出现",
+        "failure_domain": "流量仍在持续上升阶段"
+      },
+      {
+        "triplet_id": "tg_002",
+        "boundary": "大促前 2 小时变更冻结，仅允许无风险操作（如 kill 跑偏的批处理 job）",
+        "applicable_domain": "大促活动前 2 小时窗口期",
+        "failure_domain": "大促结束后或日常变更"
+      }
+    ]
+  },
+  "report_sections": {
+    "discovered_variables": [
+      "CPU 85% 扩容触发阈值（tg_001, 高置信度）",
+      "临时热点流量判断依据：外部下降信号（tg_001, 中置信度）",
+      "慢查询介入时间阈值 40 分钟（tg_002, 中置信度）",
+      "大促前 2 小时变更冻结边界（tg_002, 高置信度）"
+    ],
+    "priority_topology": [
+      "限流优先于扩容（CPU < 85%，临时流量场景）",
+      "持续时间判断优先于延迟幅度判断（持续 > 30 分钟时）"
+    ],
+    "boundary_map": [
+      "外部下降信号存在 → 锁定为临时流量（tg_001）",
+      "大促前 2 小时 → 变更冻结（tg_002）"
+    ],
+    "suspected_bias": [
+      "专家对扩容时间成本（5-10 分钟）的估算可能依赖特定基础设施环境，迁移到不同平台时阈值可能不同"
+    ],
+    "open_questions": [
+      "内存 90% 的扩容触发阈值是否与 CPU 85% 同等优先级，还是有明确先后顺序？",
+      "30 分钟开始担心 vs 40 分钟介入的中间窗口（30-40 分钟）具体如何操作？"
+    ]
+  }
+}

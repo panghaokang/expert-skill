@@ -1,0 +1,17 @@
+{
+  "name": "Mock Troubleshooter",
+  "slug": "mock-troubleshooter",
+  "expertise_type": "troubleshooter",
+  "display_name": "Mock Troubleshooter",
+  "profile": {
+    "company": "技术公司",
+    "level": "P8",
+    "role": "分布式系统工程师",
+    "domain": "分布式系统故障排查"
+  },
+  "knowledge_sources": [],
+  "discovery": {
+    "enabled": false,
+    "status": "not_started"
+  }
+}

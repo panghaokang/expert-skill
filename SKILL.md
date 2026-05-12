@@ -57,6 +57,20 @@ allowed-tools: Read, Write, Edit, Bash
 
 ---
 
+## 生成模式
+
+本 Skill 支持两种生成模式，用户确认 Step 1 后选择：
+
+| 模式 | 适用场景 | 产出差异 |
+|------|---------|---------|
+| **standard**（标准） | 快速蒸馏，材料充足 | expertise.md / heuristics.json / knowledge_graph.md |
+| **discovery**（发现） | 深度挖掘，需要访谈 | 以上 + latent_report.md / interview_transcript.md + 隐性知识增强 |
+
+选择 standard 模式 → 按现有主流程 Step 1-5 进行。
+选择 discovery 模式 → 先完成 standard Step 1-5，再按下方 discovery 流程补充。
+
+---
+
 ## 主流程
 
 ### Step 1: 基础信息录入
@@ -244,6 +258,177 @@ python3 tools/skill_writer.py ... --install-claude-skill
      --expertise-content /tmp/expert_{slug}_expertise_updated.md \
      --base-dir ./skills/expert
    ```
+
+---
+
+## Discovery 模式：隐性知识挖掘增强
+
+在 standard 模式生成的 Skill 基础上，通过结构化访谈挖掘专家的隐性知识。
+
+### P2：前置研究
+
+组装专家画像 prompt，由 AI 推断已知决策模式和疑似知识盲区：
+
+```bash
+python3 tools/pre_researcher.py \
+  --slug {slug} \
+  --name "{expert_name}" \
+  --expertise-type troubleshooter \
+  --base-dir ./skills/expert \
+  [--title "{title}"] \
+  [--domain "{domain}"] \
+  [--years "{years}"] \
+  [--expertise-description "{description}"] \
+  [--domain-background "{background}"] \
+  [--materials ./knowledge/{slug}/file1.md ./knowledge/{slug}/file2.md] \
+  [--open-research ./knowledge/{slug}/open_research.md]
+```
+
+AI 分析完成后，保存输出到文件，解析并写入：
+```bash
+python3 tools/pre_researcher.py \
+  --slug {slug} \
+  --name "{expert_name}" \
+  --expertise-type troubleshooter \
+  --base-dir ./skills/expert \
+  --parse-output /tmp/{slug}_expert_profile.json
+```
+
+注意：`pre_researcher.py` 当前没有 `--materials-dir` 参数；如需导入原材料，必须用 `--materials` 显式传入一个或多个文件路径。
+
+### P3：隐性变量候选
+
+基于专家画像，推断可能存在的隐性变量候选：
+
+```bash
+python3 tools/latent_variable_builder.py \
+  --slug {slug} \
+  --base-dir ./skills/expert
+
+# 解析 AI 输出：
+python3 tools/latent_variable_builder.py \
+  --slug {slug} \
+  --base-dir ./skills/expert \
+  --parse-output /tmp/{slug}_latent_vars.json
+```
+
+### P4：三联体问题生成
+
+为高优先级候选生成 A/B/C 三联体访谈问题：
+
+```bash
+python3 tools/triplet_generator.py \
+  --slug {slug} \
+  --base-dir ./skills/expert
+
+# 解析 AI 输出：
+python3 tools/triplet_generator.py \
+  --slug {slug} \
+  --base-dir ./skills/expert \
+  --parse-output /tmp/{slug}_triplets.json
+```
+
+### P5：实时访谈记录
+
+按 A→B→C 协议进行结构化访谈并记录：
+
+```bash
+python3 tools/interview_session.py \
+  --slug {slug} \
+  --base-dir ./skills/expert
+
+# 中断后恢复：
+python3 tools/interview_session.py \
+  --slug {slug} \
+  --base-dir ./skills/expert \
+  --resume
+
+# 仅完成特定三联体：
+python3 tools/interview_session.py \
+  --slug {slug} \
+  --base-dir ./skills/expert \
+  --triplet-id tg_001
+```
+
+### P6：访谈分析
+
+由 AI 分析访谈记录，提取隐性知识发现：
+
+```bash
+python3 tools/interview_analyzer.py \
+  --slug {slug} \
+  --base-dir ./skills/expert
+
+# 解析 AI 分析输出：
+python3 tools/interview_analyzer.py \
+  --slug {slug} \
+  --base-dir ./skills/expert \
+  --parse-output /tmp/{slug}_analysis.json
+```
+
+### P7：融合写入
+
+将隐性知识融合到 Skill 产物中：
+
+```bash
+# 先备份当前版本
+python3 tools/version_manager.py \
+  --action backup \
+  --slug {slug} \
+  --base-dir ./skills/expert
+
+# 融合写入（增强已有 Skill）
+python3 tools/skill_writer.py \
+  --action update \
+  --slug {slug} \
+  --base-dir ./skills/expert \
+  --latent-report ./skills/expert/{slug}/discovery/latent_report.md \
+  --interview-transcript ./skills/expert/{slug}/discovery/interview_transcript.md \
+  --discovery-meta ./skills/expert/{slug}/discovery/interview_analysis.json
+```
+
+### 跳过访谈（可选）
+
+如果不需要访谈，不能直接把 P3 的 `latent_variables.json` 传给 P7。当前 `skill_writer.py --discovery-meta` 读取的是 P6 `interview_analysis.json` 结构（`triplet_analyses` + `cross_analysis`），用于生成 `heuristics.json` 的 `latent_variables`、`priority_rules`、`boundary_conditions` 三类增强字段。
+
+因此 V1 的安全路径是：
+
+1. 若要融合隐性知识增强，必须先完成 P5/P6，或人工整理一个符合 P6 schema 的 `interview_analysis.json`。
+2. 若只想保留 P2-P4 产物，不执行 P7；这些文件留在 `{slug}/discovery/` 中作为候选池和访谈设计草稿。
+3. 后续若实现 `latent_variables.json → discovery_meta` 的转换器，再补充免访谈融合命令。
+
+免访谈融合不属于当前 Step 8 的实现范围；不要在 smoke test 中断言 P3 数据可直接写入 P7 latent 字段。
+
+---
+
+## Discovery 中断恢复策略
+
+每个 Phase 完成后 `meta.json` 中的 `discovery.status` 会自动更新。中途中断时：
+
+| discovery.status | 含义 | 重新启动点 |
+|-----------------|------|---------|
+| `not_started` | 尚未开始 | 从 P2 开始 |
+| `profile_ready` | P2 完成 | 从 P3 开始 |
+| `variables_ready` | P3 完成 | 从 P4 开始 |
+| `triplets_ready` | P4 完成 | 从 P5 开始 |
+| `interview_in_progress` | P5 进行中 | `--resume` 从中断点继续 |
+| `interview_completed` | P5 完成，访谈记录已生成 | 从 P6 开始 |
+| `analysis_ready` | P6 完成 | 从 P7 开始 |
+| `merged` | P7 完成 | discovery 已归档 |
+| `aborted` | discovery 被放弃 | 清理 `{slug}/discovery/` 或保留备查 |
+
+**清理未合并产物**：若放弃当前 discovery，直接删除 `{slug}/discovery/` 目录即可。
+
+**回滚已合并产物**：若 P7 已写入，必须通过 version_manager 回滚：
+```bash
+python3 tools/version_manager.py \
+  --action rollback \
+  --slug {slug} \
+  --version v{N-1} \
+  --base-dir ./skills/expert
+```
+
+注意：当前 `skill_writer.py` 在写入 discovery 增强后会启用 `meta.discovery.enabled=True`，但不会自动把 `discovery.status` 改为 `merged`。若需要归档状态，P7 完成后由流程控制代码或测试手动将状态设为 `merged`，并验证该值存在于 `DISCOVERY_STATUSES`。
 
 ---
 
