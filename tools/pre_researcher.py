@@ -239,7 +239,7 @@ def main(argv: list[str] | None = None) -> int:
     # Write assembled prompt file
     prompt_file = discovery_dir / "pre_research_prompt.md"
     prompt_file.write_text(prompt, encoding="utf-8")
-    print(f"✓ prompt 已写入：{prompt_file}")
+    print(f"[OK] prompt written: {prompt_file}")
 
     # Parse output if requested
     if args.parse_output:
@@ -282,15 +282,15 @@ def main(argv: list[str] | None = None) -> int:
         # Save expert_profile.json
         profile_path = discovery_dir / "expert_profile.json"
         profile_path.write_text(json.dumps(canonical, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"✓ expert_profile.json 已保存：{profile_path}")
+        print(f"[OK] expert_profile.json saved: {profile_path}")
 
         # Update meta.json if it exists
         meta_path = Path(args.base_dir) / args.slug / "meta.json"
         if meta_path.exists():
             _update_meta_json(meta_path)
-            print("✓ meta.json 已更新（discovery.enabled=true, discovery.status=profile_ready）")
+            print("[OK] meta.json updated (discovery.enabled=true, discovery.status=profile_ready)")
         else:
-            print("提示：meta.json 不存在，discovery 状态未写入 meta（可在完整 Skill 创建后补齐）")
+            print("Note: meta.json not found, discovery status not written")
 
     return 0
 

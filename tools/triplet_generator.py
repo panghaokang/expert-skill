@@ -389,7 +389,7 @@ def main(argv: list[str] | None = None) -> int:
     discovery_dir.mkdir(parents=True, exist_ok=True)
     prompt_file = discovery_dir / "triplet_builder_prompt.md"
     prompt_file.write_text(prompt, encoding="utf-8")
-    print(f"✓ prompt 已写入：{prompt_file}")
+    print(f"[OK] prompt written: {prompt_file}")
 
     if not args.parse_output:
         return 0
@@ -453,21 +453,21 @@ def main(argv: list[str] | None = None) -> int:
     # Save triplet_groups.json
     groups_path = discovery_dir / "triplet_groups.json"
     groups_path.write_text(json.dumps(groups, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"✓ triplet_groups.json 已保存（{len(groups)} 组）：{groups_path}")
+    print(f"[OK] triplet_groups.json saved ({len(groups)} groups): {groups_path}")
 
     # Generate interview script
     script = generate_interview_script(groups, variables)
     script_path = discovery_dir / "interview_script.md"
     script_path.write_text(script, encoding="utf-8")
-    print(f"✓ interview_script.md 已生成：{script_path}")
+    print(f"[OK] interview_script.md generated: {script_path}")
 
     # Update meta.json
     meta_path = Path(args.base_dir) / args.slug / "meta.json"
     if meta_path.exists():
         _update_meta_json(meta_path, len(groups))
-        print(f"✓ meta.json 已更新（discovery.status=triplets_ready, triplet_count={len(groups)}）")
+        print(f"[OK] meta.json updated (discovery.status=triplets_ready, triplet_count={len(groups)})")
     else:
-        print("提示：meta.json 不存在，discovery 状态未写入 meta")
+        print("Note: meta.json not found, discovery status not written")
 
     return 0
 

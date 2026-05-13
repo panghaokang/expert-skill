@@ -96,6 +96,74 @@ def extract_latent_fields(discovery_meta: dict) -> dict:
     }
 
 
+def _split_priority_rule_ref(winner: str) -> tuple[str, str]:
+    """Split winner like 'rule_A' or 'rule_A（条件性胜出）' into ref + suffix."""
+    for ref in ("rule_A", "rule_B"):
+        if winner.startswith(ref):
+            return ref, winner[len(ref):]
+    return "", ""
+
+
+def _resolve_priority_rule_display(rule: dict) -> tuple[str, str, str]:
+    """Resolve a priority rule into displayable preferred/subordinate labels.
+
+    Supports two input shapes:
+    1. {"winner": "规则A", "loser": "规则B", "condition": "..."}
+    2. {"rule_A": "规则A", "rule_B": "规则B", "winner": "rule_A", "condition": "..."}
+       or winner values like "rule_A（条件性胜出）".
+    """
+    rule_a = str(rule.get("rule_A", "") or "")
+    rule_b = str(rule.get("rule_B", "") or "")
+    winner = str(rule.get("winner", "") or "")
+    loser = str(rule.get("loser", "") or "")
+    condition = str(rule.get("condition", "") or "")
+
+    ref, suffix = _split_priority_rule_ref(winner)
+    if ref == "rule_A":
+        preferred = f"{rule_a}{suffix}" if rule_a else winner
+        subordinate = rule_b or loser
+        return preferred, subordinate, condition
+    if ref == "rule_B":
+        preferred = f"{rule_b}{suffix}" if rule_b else winner
+        subordinate = rule_a or loser
+        return preferred, subordinate, condition
+
+    if winner and loser:
+        return winner, loser, condition
+
+    if rule_a and rule_b:
+        preferred = winner or "取决于场景"
+        subordinate = f"{rule_a} / {rule_b}"
+        return preferred, subordinate, condition
+
+    return winner, loser, condition
+
+
+def _format_priority_rule_expertise_line(rule: dict) -> str:
+    """Render a human-readable priority rule for expertise.md."""
+    rule_a = str(rule.get("rule_A", "") or "")
+    rule_b = str(rule.get("rule_B", "") or "")
+    winner = str(rule.get("winner", "") or "")
+    loser = str(rule.get("loser", "") or "")
+    condition = str(rule.get("condition", "") or "")
+    ref, _ = _split_priority_rule_ref(winner)
+
+    if rule_a and rule_b and not ref and not loser and winner:
+        line = f"{rule_a} 与 {rule_b} 的优先关系{winner}"
+        if condition:
+            line += f"（条件：{condition}）"
+        return line
+
+    preferred, subordinate, condition = _resolve_priority_rule_display(rule)
+    if preferred and subordinate:
+        line = f"{preferred} 优先于 {subordinate}"
+    else:
+        line = preferred or subordinate
+    if condition:
+        line += f"（条件：{condition}）"
+    return line
+
+
 def generate_knowledge_graph_md(
     name: str, preset: dict, discovery_meta: dict | None
 ) -> str:
@@ -138,10 +206,8 @@ def generate_knowledge_graph_md(
     ]
     for pt in fields["priority_rules"]:
         if isinstance(pt, dict):
-            winner = pt.get("winner", "")
-            loser = pt.get("loser", "")
-            cond = pt.get("condition", "")
-            lines.append(f"| {winner} | {loser} | {cond} |")
+            preferred, subordinate, cond = _resolve_priority_rule_display(pt)
+            lines.append(f"| {preferred} | {subordinate} | {cond} |")
         elif isinstance(pt, str):
             lines.append(f"| {pt} | | |")
 
@@ -183,10 +249,7 @@ def generate_latent_expertise_section(discovery_meta: dict) -> str:
         lines.append("### 优先级规则")
         for pt in fields["priority_rules"]:
             if isinstance(pt, dict):
-                winner = pt.get("winner", "")
-                loser = pt.get("loser", "")
-                cond = pt.get("condition", "")
-                lines.append(f"- {winner} 优先于 {loser}（条件：{cond}）")
+                lines.append(f"- {_format_priority_rule_expertise_line(pt)}")
             elif isinstance(pt, str):
                 lines.append(f"- {pt}")
         lines.append("")
@@ -216,12 +279,18 @@ def generate_latent_expertise_section(discovery_meta: dict) -> str:
 # ---------------------------------------------------------------------------
 
 def _apply_latent_section(expertise_content: str, discovery_meta: dict | None) -> str:
-    """Append the latent expertise section to expertise_content if not already present."""
+    """Refresh the latent expertise section in expertise_content.
+
+    If a previous latent section exists, replace it with a freshly rendered one.
+    This keeps repeated P7 updates idempotent while allowing renderer fixes or
+    new discovery_meta content to flow through.
+    """
     if discovery_meta is None:
         return expertise_content
+    base_content = expertise_content
     if _LATENT_SECTION_HEADER in expertise_content:
-        return expertise_content
-    return expertise_content + generate_latent_expertise_section(discovery_meta)
+        base_content = expertise_content.split(_LATENT_SECTION_HEADER, 1)[0].rstrip()
+    return base_content + generate_latent_expertise_section(discovery_meta)
 
 
 def _apply_discovery_meta_fields(

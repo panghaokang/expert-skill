@@ -208,7 +208,7 @@ def main(argv: list[str] | None = None) -> int:
     discovery_dir.mkdir(parents=True, exist_ok=True)
     prompt_file = discovery_dir / "latent_variable_prompt.md"
     prompt_file.write_text(prompt, encoding="utf-8")
-    print(f"✓ prompt 已写入：{prompt_file}")
+    print(f"[OK] prompt written: {prompt_file}")
 
     # Parse output if requested
     if args.parse_output:
@@ -254,15 +254,15 @@ def main(argv: list[str] | None = None) -> int:
         sorted_vars = sort_candidates(variables)
         out_path = discovery_dir / "latent_variables.json"
         out_path.write_text(json.dumps(sorted_vars, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"✓ latent_variables.json 已保存（{len(sorted_vars)} 个候选）：{out_path}")
+        print(f"[OK] latent_variables.json saved ({len(sorted_vars)} candidates): {out_path}")
 
         # Update meta.json if exists
         meta_path = Path(args.base_dir) / args.slug / "meta.json"
         if meta_path.exists():
             _update_meta_json(meta_path, len(sorted_vars))
-            print(f"✓ meta.json 已更新（discovery.status=variables_ready, latent_variable_count={len(sorted_vars)}）")
+            print(f"[OK] meta.json updated (discovery.status=variables_ready, latent_variable_count={len(sorted_vars)})")
         else:
-            print("提示：meta.json 不存在，discovery 状态未写入 meta")
+            print("Note: meta.json not found, discovery status not written")
 
     return 0
 

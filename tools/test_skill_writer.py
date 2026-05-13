@@ -55,6 +55,28 @@ SAMPLE_DISCOVERY_META = {
     "report_sections": {},
 }
 
+SAMPLE_DISCOVERY_META_WITH_RULE_REFS = {
+    "triplet_analyses": [],
+    "cross_analysis": {
+        "priority_topology": [
+            {
+                "rule_A": "时间窗口约束（硬死线）",
+                "rule_B": "止血效果最大化",
+                "winner": "rule_A",
+                "condition": "硬死线物理排除了更慢方案",
+            },
+            {
+                "rule_A": "扩容（持续增长场景）",
+                "rule_B": "限流（临时突发场景）",
+                "winner": "取决于流量持续性",
+                "condition": "持续增长且 CPU > 85% 时扩容主线，否则限流主线",
+            },
+        ],
+        "boundary_map": [],
+    },
+    "report_sections": {},
+}
+
 
 def create_skill(tmp_path, slug="test-expert", **kwargs):
     """Helper: create a skill in tmp_path and return (base_dir, skill_dir)."""
@@ -183,6 +205,22 @@ def test_knowledge_graph_md_has_real_content(tmp_path):
     # Should contain actual table rows
     assert "隐性变量A" in kg
     assert "规则A" in kg
+
+
+def test_priority_rules_render_with_rule_refs_in_markdown(tmp_path):
+    base_dir, skill_dir = create_skill(
+        tmp_path,
+        discovery_meta=SAMPLE_DISCOVERY_META_WITH_RULE_REFS,
+    )
+    expertise = (skill_dir / "expertise.md").read_text(encoding="utf-8")
+    kg = (skill_dir / "knowledge_graph.md").read_text(encoding="utf-8")
+
+    assert "时间窗口约束（硬死线） 优先于 止血效果最大化" in expertise
+    assert "扩容（持续增长场景） 与 限流（临时突发场景） 的优先关系取决于流量持续性" in expertise
+    assert "| 时间窗口约束（硬死线） | 止血效果最大化 |" in kg
+    assert "| 取决于流量持续性 | 扩容（持续增长场景） / 限流（临时突发场景） |" in kg
+    assert "rule_A 优先于" not in expertise
+    assert "| rule_A |" not in kg
 
 
 # ---------------------------------------------------------------------------
@@ -415,6 +453,34 @@ def test_latent_section_not_duplicated_on_update(tmp_path):
     expertise = (skill_dir / "expertise.md").read_text(encoding="utf-8")
     count = expertise.count("## 隐性知识增强")
     assert count == 1
+
+
+def test_latent_section_refreshed_on_update(tmp_path):
+    base_dir, skill_dir = create_skill(tmp_path, discovery_meta=SAMPLE_DISCOVERY_META)
+
+    refreshed_meta = {
+        **SAMPLE_DISCOVERY_META,
+        "cross_analysis": {
+            "priority_topology": [
+                {
+                    "rule_A": "时间窗口约束（硬死线）",
+                    "rule_B": "止血效果最大化",
+                    "winner": "rule_A",
+                    "condition": "硬死线物理排除了更慢方案",
+                }
+            ],
+            "boundary_map": [],
+        },
+    }
+    sw.update_expert_skill(
+        base_dir=base_dir,
+        slug="test-expert",
+        discovery_meta=refreshed_meta,
+    )
+
+    expertise = (skill_dir / "expertise.md").read_text(encoding="utf-8")
+    assert "时间窗口约束（硬死线） 优先于 止血效果最大化" in expertise
+    assert "规则A" not in expertise
 
 
 # ---------------------------------------------------------------------------

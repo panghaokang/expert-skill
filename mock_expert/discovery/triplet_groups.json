@@ -64,6 +64,7 @@
         "priority_signal": "服务链路恢复顺序的优先级规则"
       }
     },
+    "manual_override_reason": "问题 A/B 采用自然语言叙述，上下文变量已在语义层面单独改变（流量持续性特征），文字重叠率低属预期设计，单变量控制在语义而非字面层面成立。",
     "control_notes": "A 控制基准场景，B 改变流量持续性特征，C 增加下游依赖约束",
     "quality_notes": {
       "single_variable_control": "每题只改变一个核心变量：流量特征或依赖约束",
@@ -136,6 +137,7 @@
         "priority_signal": "技术风险处理 vs 变更冻结原则的优先级"
       }
     },
+    "manual_override_reason": "问题 A/B 采用自然语言叙述，上下文变量已在语义层面单独改变（持续时间与幅度的组合），文字重叠率低属预期设计，单变量控制在语义而非字面层面成立。",
     "control_notes": "A 控制基准延迟场景，B 改变时间和幅度组合，C 增加业务节点约束",
     "quality_notes": {
       "single_variable_control": "每题改变一个核心变量：延迟幅度或业务时间窗口",
